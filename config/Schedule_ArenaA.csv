@@ -1,0 +1,29 @@
+Setup,,Stage 1,,,,
+Mapping slots,Robot Inspection,Navigation,Person Recognition,Manipulation + Object recognition,Speech Recognition,GPSR
+Sun@Home,BahiaRT,Sun@Home,KameRider,Sun@Home,WrightEagle,BahiaRT
+Uchile Homebreakers,Demura.net,BahiaRT,Demura.net,KameRider,Bit@Home,WrightEagle
+BahiaRT,Jiaolong,Sun@Home,KameRider,Sun@Home,WrightEagle,BahiaRT
+WrightEagle,Sun@Home,BahiaRT,Demura.net,KameRider,Bit@Home,WrightEagle
+Bit@Home,Uchile Homebreakers,Sun@Home,KameRider,Sun@Home,WrightEagle,BahiaRT
+Demura.net,Bit@Home,BahiaRT,Demura.net,KameRider,Bit@Home,WrightEagle
+KameRider,WrightEagle,Pumas,Jiaolong,Jiaolong,Uchile Homebreakers,Bit@Home
+Pumans,Pumas,Uchile Homebreakers,Bit@Home,WrightEagle,KameRider,Demura.net
+Jiaolong,KameRider,Pumas,Jiaolong,Jiaolong,Uchile Homebreakers,Bit@Home
+,,Uchile Homebreakers,Bit@Home,WrightEagle,KameRider,Demura.net
+,,Pumas,Jiaolong,Jiaolong,Uchile Homebreakers,Bit@Home
+,,Uchile Homebreakers,Bit@Home,WrightEagle,KameRider,Demura.net
+,,Bit@Home,BahiaRT,Bit@Home,Jiaolong,Sun@Home
+,,KameRider,WrightEagle,Demura.net,BahiaRT,Jiaolong
+,,Bit@Home,BahiaRT,Bit@Home,Jiaolong,Sun@Home
+,,KameRider,WrightEagle,Demura.net,BahiaRT,Jiaolong
+,,Bit@Home,BahiaRT,Bit@Home,Jiaolong,Sun@Home
+,,KameRider,WrightEagle,Demura.net,BahiaRT,Jiaolong
+,,Jiaolong,Uchile Homebreakers,Pumas,Sun@Home,Uchile Homebreakers
+,,Demura.net,Sun@Home,Uchile Homebreakers,Demura.net,KameRider
+,,Jiaolong,Uchile Homebreakers,Pumas,Sun@Home,Uchile Homebreakers
+,,Demura.net,Sun@Home,Uchile Homebreakers,Demura.net,KameRider
+,,Jiaolong,Uchile Homebreakers,Pumas,Sun@Home,Uchile Homebreakers
+,,Demura.net,Sun@Home,Uchile Homebreakers,Demura.net,KameRider
+,,WrightEagle,Pumas,BahiaRT,Pumas,Pumas
+,,WrightEagle,Pumas,BahiaRT,Pumas,Pumas
+,,WrightEagle,Pumas,BahiaRT,Pumas,Pumas
