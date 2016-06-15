@@ -1,4 +1,5 @@
 # GPSR
- dependencies
-  nltk
-  # mini-voice-client
+## Dependencies  
+nltk  
+## How to use  
+git clone --recursive https://github.com/demulab/mini-voice-client.git
