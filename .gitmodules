@@ -1,0 +1,3 @@
+[submodule "gpsr_command_generator"]
+	path = gpsr_command_generator
+	url = https://github.com/RoboCupAtHome/gpsr_command_generator
