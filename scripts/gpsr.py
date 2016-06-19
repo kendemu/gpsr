@@ -12,7 +12,7 @@ from sound_play.libsoundplay import SoundClient
 
 class GPSR:
     def __init__(self):
-        self.speech = rospy.Subscriber("/speech_recognition", String,self.speechcallback)
+        self.speech = rospy.Subscriber("/voice_recog", String,self.speechcallback)
         self.speech_input = ""
         self.token = []
         self.token_tag = []
@@ -97,6 +97,8 @@ class GPSR:
 
         for i in range(len(token)):
             self.soundhandle.say("your objective."+" ".join(token),self.voice)
+
+        rospy.sleep(3)
 
 def main(args):
     rospy.init_node("gpsr")

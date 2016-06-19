@@ -6,11 +6,7 @@ project(gpsr)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
-  face_detector
-  face_recognition
   image_transport
-  kaldi
-  person_recognition
   sensor_msgs
   sound_play
   std_msgs
