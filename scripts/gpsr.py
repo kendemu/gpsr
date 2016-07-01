@@ -12,6 +12,7 @@ from sound_play.libsoundplay import SoundClient
 from subprocess import call
 import time
 import os
+from geometry_msgs.msg import Twist
 
 path = "/home/kendemu/catkin_ws/src/gpsr"
 
@@ -173,6 +174,17 @@ class GPSR:
 def main(args):
     rospy.init_node("gpsr")
     gpsr = GPSR()
+    twist = Twist()
+    vel_pub = rospy.Publisher("/mobile_base/commands/velocity", Twist)
+    time.sleep(10)
+    twist.linear.x = 1.0
+    vel_pub.publish(twist)
+    twist.linear.x = 1.0
+    vel_pub.publish(twist)
+    twist.linear.x = 1.0
+    vel_pub.publish(twist)
+    twist.linear.x = 1.0
+    vel_pub.publish(twist)
     rospy.spin()
 
 if __name__ == "__main__":
