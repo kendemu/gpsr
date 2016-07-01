@@ -1,0 +1,3 @@
+<launch>
+	<node name="kaldi_ros" pkg="kaldi_ros" type="kaldi_ros.py" launch-prefix="xterm -e"></node>
+</launch>

@@ -18,18 +18,56 @@ class GPSR:
         self.token_tag = []
         self.soundhandle = SoundClient()
         self.voice = "voice_kal_diphone"
+        self.grasp_table = ["grass", "graphs"]
+        self.move_table =["movie", "mood", "moods", "moved", "movie", "due", "new", "mooted", "newt", "mu", "muti"]
+        self.find_table =["kind"]
+        self.leave_table = ["leaves"]
+        self.bring_table = ["bringing"]
+        self.put_table = ["printed"]
+        self.command_table = ["find", "move", "grasp", "put", "bring", "introduce", "guide", "leave"]
+        self.command_order = []
+        self.objective_order = []
         
     def tokenize(self,s_input):
         self.token = word_tokenize(s_input)
         if len(self.token) > 0:
             self.token[0] = self.token[0].lower()
         self.token_tag = pos_tag(self.token)
+        self.command_order = []
+
         token_tag_new = [list(self.token_tag[i]) for i in range(len(self.token_tag))]
         for i in range(len(self.token_tag)):
             if self.token[i] == "move" or self.token[i] == "grasp":
                 token_tag_new[i][1] = "VB"
             if self.token[i] == "bed" or self.token[i] == "couch" or self.token[i] == "noodles":
                 token_tag_new[i][1] = "NN"
+            if self.token[i] in self.grasp_table:
+                self.token[i] = "grasp"
+                token_tag_new[i][0] = "grasp"
+                token_tag_new[i][1] = "VB"
+            if self.token[i] in self.move_table:
+                self.token[i] = "move"
+                token_tag_new[i][0] = "move"
+                token_tag_new[i][1] = "VB"
+            if self.token[i] in self.find_table:
+                self.token[i] = "find"
+                token_tag_new[i][0] = "find"
+                token_tag_new[i][1] = "VB"
+            if self.token[i] in self.put_table:
+                self.token[i] = "put"
+                token_tag_new[i][0] = "put"
+                token_tag_new[i][1] = "VB"                
+            if self.token[i] is "piercing":
+                self.token[i] = "person"
+                token_tag_new[i][0] = "person"
+                token_tag_new[i][1] = "NN"
+            if self.token[i] in self.leave_table:
+                self.token[i] = "leave"
+                token_tag_new[i][0] = "leave"
+                token_tag_new[i][1] = "VB"
+            if token_tag_new[i][0] in self.command_table:
+                self.command_order.append(token_tag_new[i][0])
+
         self.token_tag = [tuple(token_tag_new[i]) for i in range(len(self.token_tag))]
         return self.token
 
@@ -38,11 +76,15 @@ class GPSR:
         lemmas = flatten([synset_list[i].lemma_names() for i in range(len(synset_list))])
         vocab = list(set(lemmas))
         return vocab
+
     def PRPProcessor(self):
         predict = []
+        self.objective_order = []
+
         for i in range(len(self.token_tag)):
             if self.token_tag[i][1] == "NN" or self.token_tag[i][1] == "NNP":
                 predict.append(i)
+                self.objective_order.append(self.token_tag[i])
         continuous = []
         for i in range(len(self.token_tag)):
             mini = [10000,len(predict)-1]
@@ -53,23 +95,24 @@ class GPSR:
                 elif self.token_tag[i][0] == "me":
                     self.token[i] = "operator"
                     self.token_tag[i] = tuple(["operator","NNP"])
+
                 else:
                     for j in range(len(predict)):
                         if mini[0] > i - predict[j] and i - predict[j] > 0:
                             mini = [i-predict[j],predict[j]]
                         j = mini[1]
-                    while j > 0:
-                        if self.token_tag[j-1][1] == "NNP" or self.token_tag[j-1][1] == "NN":
-                            continuous.append(self.token[j-1])
-                        else: break
-                        j-= 1
-                    continuous.reverse()
-                    if len(continuous) > 0:
-                        self.token[i] = " ".join(continuous)+" "+self.token[mini[1]]
-                    else:
-                        self.token[i] = self.token[mini[1]]
-                        print self.token[i]
-                        self.token_tag[i] = tuple([self.token[i], "NNP"])
+                        while j > 0:
+                            if self.token_tag[j-1][1] == "NNP" or self.token_tag[j-1][1] == "NN":
+                                continuous.append(self.token[j-1])
+                            else: break
+                            j-= 1
+                        continuous.reverse()
+                        if len(continuous) > 0:
+                            self.token[i] = " ".join(continuous)+" "+self.token[mini[1]]
+                        else:
+                            self.token[i] = self.token[mini[1]]
+                            print self.token[i]
+                            self.token_tag[i] = tuple([self.token[i], "NNP"])
 
     def speechcallback(self,data):
         print data
@@ -92,11 +135,17 @@ class GPSR:
                         __syn.append(syn[j][0])
             syn.append(__syn)
 
-        for i in range(len(_syn)):
-            print _syn[i]
+        # for i in range(len(_syn)):
+        #     print _syn[i]
 
-        for i in range(len(token)):
-            self.soundhandle.say("your objective."+" ".join(token),self.voice)
+        #for i in range(len(token)):
+        #    self.soundhandle.say("your objective."+" ".join(token),self.voice)
+        #    print token[i]
+        print " ".join(token)
+        print "commands :", self.command_order
+        print "objective :",self.objective_order
+        #for i in range(len(self.command_order)):
+            #rospy.loginfo("%s %s",self.command_order[i], self.objective_order[i][0])
 
         rospy.sleep(3)
 

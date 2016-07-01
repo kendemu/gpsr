@@ -1,0 +1,4 @@
+<launch>
+	<node name="kaldi_ros" pkg="kaldi_ros" type="kaldi_ros.py" launch-prefix="xterm -e"></node>
+	<node name="gpsr" pkg="gpsr" type="gpsr.py" launch-prefix="xterm -e"></node>
+</launch>
