@@ -10,6 +10,8 @@ from std_msgs.msg import String
 from sound_play.msg import SoundRequest
 from sound_play.libsoundplay import SoundClient
 from subprocess import call
+import time
+import os
 
 path = "/home/kendemu/catkin_ws/src/gpsr"
 
@@ -35,6 +37,7 @@ class GPSR:
         self.command_table = ["find", "move", "grasp", "put", "bring", "introduce", "guide", "leave"]
         self.command_order = []
         self.objective_order = []
+        os.chdir(path)
         
     def tokenize(self,s_input):
         self.token = word_tokenize(s_input)
@@ -149,14 +152,19 @@ class GPSR:
         #for i in range(len(token)):
         #    self.soundhandle.say("your objective."+" ".join(token),self.voice)
         #    print token[i]
-        self.speak("your commands are ")
-        for i in range(self.command_order):
-            self.speak("command "+str(i))
-            self.speak(self.command_order[i])
-        self.speak("your objectives are")
-        for i in range(self.objective_order):
-            self.speak("objective " + str(i))
-            self.speak(self.objective_order[i])
+        if len(self.command_order) is 0 or len(self.objective_order) is 0:
+            speak("Sentence invalid")
+            speak("Repeat again")
+
+        else:
+            speak("your commands are ")
+            for i in range(len(self.command_order)):
+                speak("command "+str(i))
+                speak(self.command_order[i])
+            speak("your objectives are")
+            for i in range(len(self.objective_order)):
+                speak("objective " + str(i))
+                speak(self.objective_order[i])
         #for i in range(len(self.command_order)):
             #rospy.loginfo("%s %s",self.command_order[i], self.objective_order[i][0])
 
