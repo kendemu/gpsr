@@ -9,6 +9,14 @@ from nltk.corpus import wordnet as wn
 from std_msgs.msg import String
 from sound_play.msg import SoundRequest
 from sound_play.libsoundplay import SoundClient
+from subprocess import call
+
+path = "/home/kendemu/catkin_ws/src/gpsr"
+
+
+def speak(text):
+    call(["./speak.sh", text, path])
+
 
 class GPSR:
     def __init__(self):
@@ -141,9 +149,14 @@ class GPSR:
         #for i in range(len(token)):
         #    self.soundhandle.say("your objective."+" ".join(token),self.voice)
         #    print token[i]
-        print " ".join(token)
-        print "commands :", self.command_order
-        print "objective :",self.objective_order
+        self.speak("your commands are ")
+        for i in range(self.command_order):
+            self.speak("command "+str(i))
+            self.speak(self.command_order[i])
+        self.speak("your objectives are")
+        for i in range(self.objective_order):
+            self.speak("objective " + str(i))
+            self.speak(self.objective_order[i])
         #for i in range(len(self.command_order)):
             #rospy.loginfo("%s %s",self.command_order[i], self.objective_order[i][0])
 
