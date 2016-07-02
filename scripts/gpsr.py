@@ -14,7 +14,7 @@ import time
 import os
 from geometry_msgs.msg import Twist
 
-path = "/home/kendemu/catkin_ws/src/gpsr"
+path = "/home/demulab/catkin_ws/src/mini-voice-client"
 
 navigation_pub = rospy.Publisher("/gpsr_navigation", String)
 question_pub = rospy.Publisher("/gpsr_question", String)
@@ -28,6 +28,7 @@ def speak(text):
 class GPSR:
     def __init__(self):
         self.speech = rospy.Subscriber("/voice_recog", String,self.speechcallback)
+        self.sp_control = rospy.Publisher("/speech_control", String)
         self.speech_input = ""
         self.token = []
         self.token_tag = []
@@ -166,10 +167,18 @@ class GPSR:
         #    self.soundhandle.say("your objective."+" ".join(token),self.voice)
         #    print token[i]
         if len(self.command_order) is 0 or len(self.objective_order) is 0:
+            com = String()
+            com.data = "stop"
+            self.sp_control.publish(com)
             speak("Sentence invalid")
             speak("Repeat again")
+            com.data = "speak"
+            self.sp_control.publish(com)
 
         else:
+            com = String()
+            com.data = "stop"
+            self.sp_control.publish(com)
             speak("your commands are ")
             for i in range(len(self.command_order)):
                 speak("command "+str(i))
@@ -200,6 +209,8 @@ class GPSR:
                 speak(self.objective_order[i])
         #for i in range(len(self.command_order)):
             #rospy.loginfo("%s %s",self.command_order[i], self.objective_order[i][0])
+            com.data = "speak"
+            self.sp_control.publish(com)
 
         rospy.sleep(3)
 
