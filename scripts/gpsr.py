@@ -12,8 +12,12 @@ from sound_play.libsoundplay import SoundClient
 from subprocess import call
 import time
 import os
+from geometry_msgs.msg import Twist
 
 path = "/home/demulab/catkin_ws/src/mini-voice-client"
+
+navigation_pub = rospy.Publisher("/gpsr_navigation", String)
+question_pub = rospy.Publisher("/gpsr_question", String)
 
 
 def speak(text):
@@ -35,7 +39,7 @@ class GPSR:
         self.leave_table = ["leaves"]
         self.bring_table = ["bringing"]
         self.put_table = ["printed"]
-        self.command_table = ["find", "move", "grasp", "put", "bring", "introduce", "guide", "leave"]
+        self.command_table = ["find", "move", "grasp", "put", "bring", "introduce", "guide", "leave", "answer"]
         self.command_order = []
         self.objective_order = []
         os.chdir(path)
@@ -170,6 +174,19 @@ class GPSR:
             for i in range(len(self.command_order)):
                 speak("command "+str(i))
                 speak(self.command_order[i])
+                if self.command_order[i] == "move":
+                    msg = String()
+                    msg.data = self.objective_order[i]
+                    navigation_pub.publish(msg)
+                elif self.command_order[i] == "leave":
+                    msg = String()
+                    msg.data = "leave"
+                    navigation_pub.publish(msg)
+                elif self.command_order[i] == "answer":
+                    msg = String()
+                    msg.data = "answer"
+                    question_pub.publish(msg)
+
             speak("your objectives are")
             for i in range(len(self.objective_order)):
                 speak("objective " + str(i))
