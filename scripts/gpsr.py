@@ -20,6 +20,7 @@ navigation_pub = rospy.Publisher("/gpsr_navigation", String)
 question_pub = rospy.Publisher("/gpsr_question", String)
 
 
+
 def speak(text):
     call(["./speak.sh", text, path])
 
@@ -82,6 +83,14 @@ class GPSR:
                 token_tag_new[i][1] = "VB"
             if token_tag_new[i][0] in self.command_table:
                 self.command_order.append(token_tag_new[i][0])
+
+            if token_tag_new[i][1] == "VB":
+                self.objective_order.append(token_tag_new[i][0])
+            if token_tag_new[i][1] == "NN":
+                self.objective_order.append(token_tag_new[i][0])
+            if token_tag_new[i][1] == "NNP":
+                self.objective_order.append(token_tag_new[i][0])
+
 
         self.token_tag = [tuple(token_tag_new[i]) for i in range(len(self.token_tag))]
         return self.token
@@ -169,10 +178,17 @@ class GPSR:
                     msg = String()
                     msg.data = self.objective_order[i]
                     navigation_pub.publish(msg)
+
                 elif self.command_order[i] == "leave":
                     msg = String()
                     msg.data = "leave"
                     navigation_pub.publish(msg)
+
+                elif self.commmand_order[i] == "follow":
+                    msg = String()
+                    msg.data = "follow"
+                    navigation_pub.publish(msg)
+
                 elif self.command_order[i] == "answer":
                     msg = String()
                     msg.data = "answer"
