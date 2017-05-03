@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+import sys
+import rospy
+import nltk
+from nltk import *
+from std_msgs.msg import String
+from sound_play.msg import String
+from sound_play.libsoundplay import SoundClient
+from subprocess import call
+import time
+from geometry_msgs.msg import Twist
+
+path = "/home/demulab/catkin_ws/src/mini-voice-client"
+
+#def NLP():
+#    print data
+#    print "len=%s" % len(data)
+
+class GPSR:
+    def __init__(self):
+        self.speech = rospy.Subscriber("/voice_recog", String , self.speechRecog)
+        self.answer = rospy.publisher("/answer", String, queue_size=10)
+        self.taken = []
+        self.taken_tag = []
+
+    def Robot(self):
+        for i in rang(len(self.taken_tag)):
+            if self.taken[i] == "kitchen" and self.taken[i] == "chips":
+#            print "taken[%d]:%s"
+#            cmd3 = "/usr/bin/picospeaker %s" % taken[]
+            waypoint = [[8,-1,0.5 * math.pi],[15.8,-2.27,0.5 * math.pi],[8,-2.27,0.5 * math.pi]]
+
+if __name__ == "__main__":
+#    rospy.init_node("gpsr")
+    GPSR()
+    rospy.spin()

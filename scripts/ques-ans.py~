@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import csv
-#path = "/home/demulab/myprog/src/gpsr/config/"
-path = "/home/kazuki/catkin_ws/src/mini-voice-client/config/"
+path = "/home/demulab/myprog/src/gpsr/config/"
 questions = open(path+"speech_recognition_questions.csv").read()
 questions = questions.split("\n")
 answer = [questions[i].split(";")[1] for i in range(len(questions))]
