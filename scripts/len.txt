@@ -1,6 +1,0 @@
-
-type | vocabrary categ number | words number
-
-NNP 41,46
-PRP 3, 4
-IN  13,45

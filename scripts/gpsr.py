@@ -6,45 +6,73 @@ import nltk
 from compiler.ast import flatten
 from nltk import *
 from nltk.corpus import wordnet as wn
+from nltk.corpus import cmudict
 from std_msgs.msg import String
-from sound_play.msg import SoundRequest
-from sound_play.libsoundplay import SoundClient
 from subprocess import call
+from operator import add
+import numpy as np
 import time
 import os
-from geometry_msgs.msg import Twist
-path = "/home/kazuki/catkin_ws/src/mini-voice-client2017"
+import ngram
 
-navigation_pub = rospy.Publisher("/gpsr_navigation", String)
-question_pub = rospy.Publisher("/gpsr_question", String)
+path = "/home/demulab/catkin_ws/src/mini-voice-client2017"
 
-
+navigation_pub = rospy.Publisher("/gpsr/navigation/input", String)
 
 def speak(text):
+    rospy.loginfo(text)
     call(["./speak.sh", text, path])
 
 
 class GPSR:
     def __init__(self):
         self.speech = rospy.Subscriber("/voice_recog", String,self.speechcallback)
+        self.question_res = rospy.Subscriber("/gpsr/question/result", String, self.questionResult)
+        self.navigation_res = rospy.Subscriber("/gpsr/navigation/result", String, self.navigationResult)
+
+        self.pro_dict = cmudict.dict()
+
         self.sp_control = rospy.Publisher("/speech_control", String)
         self.speech_input = ""
         self.token = []
         self.token_tag = []
-        self.soundhandle = SoundClient()
-        self.voice = "voice_kal_diphone"
         self.grasp_table = ["grass", "graphs"]
-        self.move_table =["movie", "mood", "moods", "moved", "movie", "due", "new", "mooted", "newt", "mu", "muti", "go"]
+        self.move_table =["movie", "mood", "moods", "moved", "movie", "due", "new", "mooted", "newt", "mu", "muti"]
         self.find_table =["kind"]
         self.leave_table = ["leaves"]
         self.bring_table = ["bringing"]
         self.put_table = ["printed"]
-        self.command_table = ["find", "move", "grasp", "put", "bring", "introduce", "guide", "leave", "answer"]
+        self.command_table = ["find", "move", "grasp", "put", "bring", "introduce", "guide", "leave", "answer", "navigate", "ask", "drive", "go", "tell", "place", "take", "get", "hand", "deliver", "locate", "look", "give", "say", "pick_up", "look_for"]
+        self.search_categories = ["find", "look_for", "locate"]
+        self.move_categories = ["go", "move", "drive", "navigate"]
+        self.manip_categories = ["grasp", "pick_up", "get", "take"]
+        self.speak_categories = ["tell", "say"]
+        self.deliver_categories = ["deliver", "hand", "place", "give", "bring"]
+        self.furnitures = {"bookshelf":"children's library","sofa":"living room","tv":"living room","table":"living room","bar table":"kitchen and dining room","table set one":"kitchen and dining room","table set two":"kichen and dining room", "bar_table" : "kitchen and dining room", "table_set_one":"kitchen and dining room", "table_set_two" : "kitchen and dining room"}
+        self.furnitures_list = ["bookshelf", "sofa", "tv", "table", "bar table", "table set one", "table set two", "children library", "living room", "kitchen and dining room", "hallway"]
+        self.rooms = ["children's library","living room","kitchen and dining room","hallway","exit"]
+        self.nav_state = "waiting"
+        self.ques_state = "waiting"
+
+        #search: find, look_for
+        #move: go, move, guide, navigate, drive
+        #language: introduce, answer, ask, tell, say
+        #object: grasp, put, bring, place, take, get, hand deliver, pick_up
         self.command_order = []
         self.objective_order = []
         os.chdir(path)
         
+    def synsets(word, POS):
+        word_list = wordnet.synsets(word)
+        word_list = filter(lambda n : n.name().find(".%s." % (POS)) != -1, word_list)
+        return word_list
+
     def tokenize(self,s_input):
+        s_input = s_input.replace("bar table", "bar_table")
+        s_input = s_input.replace("table set one", "table_set_one")
+        s_input = s_input.replace("table set two", "table_set_two")
+        print s_input
+
         self.token = word_tokenize(s_input)
         if len(self.token) > 0:
             self.token[0] = self.token[0].lower()
@@ -57,6 +85,9 @@ class GPSR:
         for i in range(len(self.token_tag)):
             if self.token[i] == "move" or self.token[i] == "grasp":
                 token_tag_new[i][1] = "VB"
+            if self.token[i] == "bar_table":
+                token_tag_new[i][1] = "NNP"
+
             if self.token[i] == "bed" or self.token[i] == "couch" or self.token[i] == "noodles":
                 token_tag_new[i][1] = "NN"
             if self.token[i] in self.grasp_table:
@@ -96,10 +127,14 @@ class GPSR:
         vocab = list(set(lemmas))
         return vocab
 
+    def mostSimilar(self, input_list, input_data):
+        G = ngram.NGram(input_list)
+        print G.search(input_data)
+        return G.find(input_data)
+
     def PRPProcessor(self):
         predict = []
         self.objective_order = []
-        print self.token_tag
 
 
         for i in range(len(self.token_tag)):
@@ -108,7 +143,6 @@ class GPSR:
                     self.token[i] = "Mini"
                     self.token_tag[i] = tuple(["Mini","NNP"])
                 elif self.token_tag[i][0] == "me":
-                    print "find me"
                     self.token[i] = "operator"
                     self.token_tag[i] = tuple(["operator","NNP"])
 
@@ -134,7 +168,6 @@ class GPSR:
                         self.token[i] = " ".join(continuous)+" "+self.token[mini[1]]
                     else:
                         self.token[i] = self.token[mini[1]]
-                        print self.token[i]
                         self.token_tag[i] = tuple([self.token[i], "NNP"])
 
     def stopVoiceRecog(self):
@@ -147,16 +180,54 @@ class GPSR:
         com.data = "speak"
         self.sp_control.publish(com)
 
+    def navigation(self, place):
+        speak("I am moving to %s" % place)
+        com = String()
+        com.data = place
+        self.nav_state = "running"
+        navigation_pub.publish(com)
+
+    def navigationResult(self, msg):
+        self.nav_state = msg
+
+    def navigationReset(self):
+        self.nav_state = "waiting"
+
+    def questionResult(self, msg):
+        self.ques_state = msg
+
+    def questionReset(self):
+        self.ques_state = "waiting"
+
+    def estimateWord(self, target_dict,target_list, target_word):
+        if target_word in target_dict:
+            f_pro_dict = []
+            for j in range(len(target_list)):
+                if self.furnitures_list[j].find(" ") != -1:
+                    f_multi = target_list[j].split()
+                    f = []
+                    for k in range(len(f_multi)):
+                        f = f + ['_'] + target_dict[f_multi[k]][0]
+                    f_pro_dict.append("".join(f))
+                else:
+                    f_pro_dict.append("".join(target_dict[target_list[j]][0]))
+
+            f_dict = dict([(f_pro_dict[j], target_list[j]) for j in range(len(target_list))])
+            return f_dict[self.mostSimilar(f_pro_dict, "".join(target_dict[target_word][0]))]
+
+        else:
+            return self.mostSimilar(target_list, target_word)
 
     def speechcallback(self,data):
         print data
         token = self.tokenize(str(data).replace("data:",""))
         #self.PRPProcessor()
-        print self.token_tag
+        print self.token
 
+        #unable to hear you, or the sentence is invalid
         if len(self.command_order) is 0 or len(self.objective_order) is 0:
             self.stopVoiceRecog()
-            speak("Sentence invalid")
+            speak("Error 1 : Unable to hear you, or the sentence is invalid")
             speak("Repeat again")
             self.startVoiceRecog()
 
@@ -164,35 +235,124 @@ class GPSR:
             self.stopVoiceRecog()
             speak("your commands are ")
             print self.command_order
+            print self.objective_order
+            command_table = []
+            for (command, objective) in zip(self.command_order, self.objective_order):
+                command_ = "%s %s" % (command, objective)
+                speak(command_)
+                command_table.append(command_)
+                
 
-            for i in range(len(self.command_order)):
-                speak("command "+str(i))
-                speak(self.command_order[i])
-                if self.command_order[i] == "move":
-                    msg = String()
-                    msg.data = self.objective_order[i]
-                    navigation_pub.publish(msg)
+            #executing command
+            i = 0
+
+            while i < range(len(self.command_order)):
+                if i == len(self.command_order):
+                    speak("All commands accomplished.")
+                    speak("I am leaving.")
+                    speak("Bye.")
+                    self.navigation("exit")
+                    break
+
+                if self.command_order[i] in self.move_categories:
+                    if self.nav_state is "waiting":
+                        if self.objective_order[i] in self.furnitures:
+                            self.navigation(self.objective_order[i])
+                        elif self.objective_order[i] in self.rooms:
+                            self.navigation(self.objective_order[i])
+                        else:
+                            place = self.estimateWord(self.pro_dict, self.furnitures_list, self.objective_order[i])
+                            if place is None:
+                                speak("I don't know the location %s." % (place))
+                                speak("Skipping command to number %d" % (i + 2))
+                                i = i + 1
+                            else:
+                                self.navigation(place)
+
+                                    
+
+                    elif self.nav_state is "running":
+                        rospy.loginfo("going to destination")
+                    else:
+                        speak("Arrived at destination.")
+                        speak("Moving to next command.")
+                        self.navigationReset()
+                        i += 1
+
 
                 elif self.command_order[i] == "leave":
+                    speak("I am leaving.")
                     msg = String()
                     msg.data = "leave"
                     navigation_pub.publish(msg)
+                    i += 1
 
                 elif self.command_order[i] == "follow":
+                    speak("I am following.")
                     msg = String()
                     msg.data = "follow"
                     navigation_pub.publish(msg)
+                    i += 1
 
                 elif self.command_order[i] == "answer":
-                    msg = String()
-                    msg.data = "answer"
-                    question_pub.publish(msg)
+                    speak("I am going to answer a question.")
+                    if self.ques_state is "waiting":
+                        self.startVoiceRecog()
 
-            speak("your objectives are")
-            print self.objective_order
-            for i in range(len(self.objective_order)):
-                speak("objective " + str(i))
-                speak(self.objective_order[i])
+                    elif self.ques_state is "running":
+                        rospy.loginfo("answering question")
+
+                    else:
+                        self.stopVoiceRecog()
+                        speak("answered question")
+                        speak("Moving to next command.")
+                        i += 1
+
+                elif self.command_order[i] == "ask":
+                    speak("I'm going to ask you a question.")
+                    speak("Skipping to next command.")
+                    i += 1
+
+                elif self.command_order[i] in self.manip_categories:
+                    speak("I don't have arms. Sorry.")
+                    speak("Skipping to next command.")
+                    i += 1
+
+                elif self.command_order[i] in self.speak_categories:
+                    speak("I have to talk to you.")
+                    speak("Skipping to next command.")
+                    i += 1
+
+                elif self.command_order[i] in self.search_categories:
+                    if self.nav_state is "waiting":
+                        place = self.command_order[i + 1] if len(self.command_order[i]) > i + 1 else self.command_order[i - 1]
+                        speak("I have to search somebody located in %s." % (place))
+                        if place in self.furnitures:
+                            self.navigation(place)
+                        elif place in self.rooms:
+                            self.navigation(place)
+                        else:
+                            place = self.estimateWord(self.pro_dict, self.furnitures_list, place)
+                            if place is None:
+                                speak("I don't know the location %s." % (place))
+                                speak("Skipping to command number %d" % (i + 2))
+                                i = i + 1
+                            else:
+                                self.navigation(place)
+
+                    elif self.nav_state is "running":
+                        rospy.loginfo("moving to destination.")
+
+                    elif self.nav_state is not "running":
+                        speak("Arrived at destination.")
+                        speak("Moving to next command.")
+                        self.navigationReset()
+                        i += 1
+
+                elif self.command_order[i] in self.deliver_categories:
+                    speak("I am going to deliver.")
+                    speak("Skipping command.")
+                    i += 1
 
             self.startVoiceRecog()
 
