@@ -15,7 +15,7 @@ import time
 import os
 import ngram
 
-path = "/home/demulab/catkin_ws/src/mini-voice-client2017"
+path = "/home/kazuki/catkin_ws/src/mini-voice-client"
 navigation_pub = rospy.Publisher("/gpsr/navigation/input", String)
 search_pub = rospy.Publisher("/gpsr/search/input", String)
 
@@ -45,13 +45,13 @@ class GPSR:
         self.put_table = ["printed"]
         self.command_table = ["find", "move", "grasp", "put", "bring", "introduce", "guide", "leave", "answer", "navigate", "ask", "drive", "go", "tell", "place", "take", "get", "hand", "deliver", "locate", "look", "give", "say", "pick_up", "look_for"]
         self.search_categories = ["find", "look_for", "locate"]
-        self.move_categories = ["go", "move", "drive", "navigate"]
+        self.move_categories = ["go", "move", "drive", "navigate", "dr"]
         self.manip_categories = ["grasp", "pick_up", "get", "take"]
         self.speak_categories = ["tell", "say"]
         self.deliver_categories = ["deliver", "hand", "place", "give", "bring"]
         self.furnitures = {"bookshelf":"children's library","sofa":"living room","tv":"living room","table":"living room","bar table":"kitchen and dining room","table set one":"kitchen and dining room","table set two":"kichen and dining room", "bar_table" : "kitchen and dining room", "table_set_one":"kitchen and dining room", "table_set_two" : "kitchen and dining room", "operator": "operator"}
         self.furnitures_list = ["bookshelf", "sofa", "tv", "table", "bar table", "table set one", "table set two", "children library", "living room", "kitchen and dining room", "hallway", "operator"]
-        self.object_list = ["green tea", "cafe au lait", "iced tea", "grape fruit juice", "strawberry juice", "potato chips", "cookie", "potato stick", "potage soup", "egg soup", "orange", "apple", "plate", "tray", "cup"]
+        self.object_list = ["green", "cafe", "iced", "grape", "strawberry", "chips", "cookie", "stick", "potage", "egg", "orange", "apple", "plate", "tray", "cup"]
 
         self.rooms = ["children's library","living room","kitchen and dining room","hallway","exit", "operator"]
         self.nav_state = "waiting"
@@ -119,47 +119,47 @@ class GPSR:
                 token_tag_new[i][1] = "VB"
             if token_tag_new[i][0] in self.command_table:
                 self.command_order.append(token_tag_new[i][0])
-            else:
-                if not token_tag_new[i][0] in self.furnitures_list:
-                    if i is 0:
-                        word_estimate = self.estimateWord(self.pro_dict, self.command_table, token_tag_new[i][0], threshold=0.1)
-                        if word_estimate is not None:
-                            print token_tag_new[i][0], word_estimate
-                            token_tag_new[i][0] = word_estimate
-                            token_tag_new[i][1] = "VB"
-                            self.objective_order.append(token_tag_new[i][0])
+            #else:
+            #    if not token_tag_new[i][0] in self.furnitures_list:
+            #        if i is 0:
+            #            word_estimate = self.estimateWord(self.pro_dict, self.command_table, token_tag_new[i][0], threshold=0.1)
+            #            if word_estimate is not None:
+            #                print token_tag_new[i][0], word_estimate
+            #                token_tag_new[i][0] = word_estimate
+            #                token_tag_new[i][1] = "VB"
+            #                self.objective_order.append(token_tag_new[i][0])
                                     
-                    else:
-                        if len(token_tag_new[i][0]) >= 5:
-                            if token_tag_new[i][1] is "VB":
-                                detect_table = [int(token_tag_new[j][1] is "NN") + int(token_tag_new[j][1] is "NNP") for j in range(i-1)]
-                                print token_tag_new[0:i]
-                                score = reduce(add, detect_table)
-                                if score == 0:
-                                    word_estimate = self.estimateWord(self.pro_dict, self.furnitures_list, token_tag_new[i][0], threshold=0.1)
-                                    if word_estimate is not None:
-                                        print token_tag_new[i], word_estimate
-                                        token_tag_new[i][0] = word_estimate
-                                        token_tag_new[i][1] = "NN"
-                                        self.objective_order.append(token_tag_new[i][0])
-                                else:
-                                    word_estimate = self.estimateWord(self.pro_dict, self.command_table, token_tag_new[i][0], threshold=0.1)
-                                    if word_estimate is not None:
-                                        print token_tag_new[i][0], word_estimate
-                                        token_tag_new[i][0] = word_estimate
-                                        self.command_order.append(token_tag_new[i][0])
-                            else:
-                                detect_table = [int(token_tag_new[j][1] is not "NNP") or int(token_tag_new[j][1] is not "NN") or int(token_tag_new[j][1] is not "VB") for j in range(i - 1)]
-                                score = reduce(add, detect_table)
-                                if score > 2:
-                                    word_estimate = self.estimateWord(self.pro_dict, self.command_table + self.furnitures_list + self.object_list, token_tag_new[i][0])
-                                    if word_estimate is not None:
-                                        print token_tag_new[i][0], word_estimate
-                                        token_tag_new[i][0] = word_estimate
-                                        if word_estimate in self.furnitures_list or word_estimate in self.object_list:
-                                            token_tag_new[i][1] = "NN"
-                                        else:
-                                            token_tag_new[i][1] = "VB"
+            #        else:
+            #            if len(token_tag_new[i][0]) >= 5:
+            #                if token_tag_new[i][1] is "VB":
+            #                    detect_table = [int(token_tag_new[j][1] is "NN") + int(token_tag_new[j][1] is "NNP") for j in range(i-1)]
+            #                    print token_tag_new[0:i]
+            #                    score = reduce(add, detect_table)
+            #                    if score == 0:
+            #                        word_estimate = self.estimateWord(self.pro_dict, self.furnitures_list, token_tag_new[i][0], threshold=0.1)
+            #                        if word_estimate is not None:
+            #                            print token_tag_new[i], word_estimate
+            #                            token_tag_new[i][0] = word_estimate
+            #                            token_tag_new[i][1] = "NN"
+            #                            self.objective_order.append(token_tag_new[i][0])
+            #                    else:
+            #                        word_estimate = self.estimateWord(self.pro_dict, self.command_table, token_tag_new[i][0], threshold=0.1)
+            #                        if word_estimate is not None:
+            #                            print token_tag_new[i][0], word_estimate
+            #                            token_tag_new[i][0] = word_estimate
+            #                            self.command_order.append(token_tag_new[i][0])
+            #                else:
+            #                    detect_table = [int(token_tag_new[j][1] is not "NNP") or int(token_tag_new[j][1] is not "NN") or int(token_tag_new[j][1] is not "VB") for j in range(i - 1)]
+            #                    score = reduce(add, detect_table)
+            #                    if score > 2:
+            #                        word_estimate = self.estimateWord(self.pro_dict, self.command_table + self.furnitures_list, token_tag_new[i][0])
+            #                        if word_estimate is not None:
+            #                            print token_tag_new[i][0], word_estimate
+            #                            token_tag_new[i][0] = word_estimate
+            #                            if word_estimate in self.furnitures_list or word_estimate in self.object_list:
+            #                                token_tag_new[i][1] = "NN"
+            #                            else:
+            #                                token_tag_new[i][1] = "VB"
 
 
         self.token_tag = [tuple(token_tag_new[i]) for i in range(len(self.token_tag))]
@@ -293,6 +293,7 @@ class GPSR:
             self.stopVoiceRecog()
             speak("Error 1 : Unable to hear you, or the sentence is invalid")
             speak("Repeat again")
+            rospy.sleep(0.5)
             self.startVoiceRecog()
 
         else:
@@ -316,6 +317,7 @@ class GPSR:
                     speak("I am leaving.")
                     speak("Bye.")
                     self.navigation("exit")
+                    rospy.sleep(0.5)
                     break
 
                 if self.command_order[i] in self.move_categories:
@@ -329,6 +331,7 @@ class GPSR:
                             if place is None:
                                 speak("I don't know the location %s." % (place))
                                 speak("Skipping command to number %d" % (i + 2))
+                                rospy.sleep(1)
                                 i = i + 1
                             else:
                                 self.navigation(place)
@@ -340,6 +343,7 @@ class GPSR:
                     else:
                         speak("Arrived at destination.")
                         speak("Moving to next command.")
+                        rospy.sleep(1)
                         self.navigationReset()
                         i += 1
 
@@ -347,6 +351,7 @@ class GPSR:
                 elif self.command_order[i] == "leave":
                     speak("I am leaving.")
                     self.navigation("exit")
+                    rospy.sleep(0.5)
                     i += 1
 
                 elif self.command_order[i] == "follow":
@@ -355,6 +360,7 @@ class GPSR:
                     #msg.data = "follow"
                     #navigation_pub.publish(msg)
                     speak("Skipping to next command.")
+                    rospy.sleep(1)
                     i += 1
 
                 elif self.command_order[i] == "answer":
@@ -370,21 +376,25 @@ class GPSR:
                         speak(sef.ques_state)
                         speak("Answered question.")
                         speak("Moving to next command.")
+                        rospy.sleep(1)
                         i += 1
 
                 elif self.command_order[i] == "ask":
                     speak("I'm going to ask you a question.")
                     speak("Skipping to next command.")
+                    rospy.sleep(1)
                     i += 1
 
                 elif self.command_order[i] in self.manip_categories:
                     speak("I don't have arms. Sorry.")
                     speak("Skipping to next command.")
+                    rospy.sleep(1)
                     i += 1
 
                 elif self.command_order[i] in self.speak_categories:
                     speak("I have to talk to you.")
                     speak("Skipping to next command.")
+                    rospy.sleep(1)
                     i += 1
 
                 elif self.command_order[i] in self.search_categories:
@@ -400,6 +410,7 @@ class GPSR:
                             if place is None:
                                 speak("I don't know the location %s." % (place))
                                 speak("Skipping to command number %d" % (i + 2))
+                                rospy.sleep(1)
                                 i = i + 1
                             else:
                                 self.navigation(place)
@@ -409,6 +420,7 @@ class GPSR:
 
                     elif self.nav_state is not "running":
                         speak("Arrived at destination.")
+                        rospy.sleep(1)
                         if self.search_state is "waiting":
                             speak("Searching person.")
                             self.search()
@@ -417,6 +429,7 @@ class GPSR:
                         else:
                             speak("Found person.")
                             speak("Moving to next command.")
+                            rospy.sleep(1)
                             self.searchReset()
                             self.navigationReset()
                             i += 1
@@ -432,6 +445,7 @@ class GPSR:
                     else:
                         speak("Returned back to operator.")
                         speak("Moving to next command.")
+                        rospy.sleep(1)
                         self.navigationReset()
                         i += 1
 
