@@ -116,6 +116,20 @@ class GPSR:
                 token_tag_new[i][1] = "VB"
             if token_tag_new[i][0] in self.command_table:
                 self.command_order.append(token_tag_new[i][0])
+            else:
+                if not token_tag_new[i][0] in self.furnitures_list:
+                    if i is 0:
+                        word_estimate = self.estimateWord(self.pro_dict, self.command_table, token_tag_new[i][0], threshold=0.1)
+                        print token_tag_new[i][0], word_estimate
+                    else:
+                        if len(token_tag_new[i][0]) >= 5:
+                            if token_tag_new[i][1] is "VB":
+                                detect_table = [int(token_tag_new[j][1] is "NN") + int(token_tag_new[j][1] is "NNP") for j in range(i-1)]
+                                print token_tag_new[0:i]
+                                score = reduce(add, detect_table)
+                                if score == 0:
+                                    word_estimate = self.estimateWord(self.pro_dict, self.command_table, token_tag_new[i][0], threshold=0.1)
+                                    print token_tag_new[i][0], word_estimate
 
 
         self.token_tag = [tuple(token_tag_new[i]) for i in range(len(self.token_tag))]
@@ -127,10 +141,10 @@ class GPSR:
         vocab = list(set(lemmas))
         return vocab
 
-    def mostSimilar(self, input_list, input_data):
+    def mostSimilar(self, input_list, input_data, threshold):
         G = ngram.NGram(input_list)
-        print G.search(input_data)
-        return G.find(input_data)
+        print G.search(input_data, threshold)
+        return G.find(input_data, threshold)
 
     def PRPProcessor(self):
         predict = []
@@ -199,24 +213,32 @@ class GPSR:
     def questionReset(self):
         self.ques_state = "waiting"
 
-    def estimateWord(self, target_dict,target_list, target_word):
+    def estimateWord(self, target_dict,target_list, target_word, threshold=0.0):
         if target_word in target_dict:
             f_pro_dict = []
             for j in range(len(target_list)):
-                if self.furnitures_list[j].find(" ") != -1:
+                if target_list[j].find(" ") != -1:
                     f_multi = target_list[j].split()
                     f = []
                     for k in range(len(f_multi)):
                         f = f + ['_'] + target_dict[f_multi[k]][0]
                     f_pro_dict.append("".join(f))
+                elif target_list[j].find("_") != -1:
+                    f_multi = target_list[j].split("_")
+                    f = []
+                    for k in range(len(f_multi)):
+                        f = f + ['_'] + target_dict[f_multi[k]][0]
+                    f_pro_dict.append("".join(f))
+
+
                 else:
                     f_pro_dict.append("".join(target_dict[target_list[j]][0]))
 
             f_dict = dict([(f_pro_dict[j], target_list[j]) for j in range(len(target_list))])
-            return f_dict[self.mostSimilar(f_pro_dict, "".join(target_dict[target_word][0]))]
+            return f_dict[self.mostSimilar(f_pro_dict, "".join(target_dict[target_word][0]), threshold)]
 
         else:
-            return self.mostSimilar(target_list, target_word)
+            return self.mostSimilar(target_list, target_word, threshold)
 
     def speechcallback(self,data):
         print data
