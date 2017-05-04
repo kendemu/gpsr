@@ -16,8 +16,8 @@ import os
 import ngram
 
 path = "/home/demulab/catkin_ws/src/mini-voice-client2017"
-
 navigation_pub = rospy.Publisher("/gpsr/navigation/input", String)
+search_pub = rospy.Publisher("/gpsr/search/input", String)
 
 def speak(text):
     rospy.loginfo(text)
@@ -29,6 +29,7 @@ class GPSR:
         self.speech = rospy.Subscriber("/voice_recog", String,self.speechcallback)
         self.question_res = rospy.Subscriber("/gpsr/question/result", String, self.questionResult)
         self.navigation_res = rospy.Subscriber("/gpsr/navigation/result", String, self.navigationResult)
+        self.search_res = rospy.Publisher("/gpsr/search/result", String, self.searchResult)
 
         self.pro_dict = cmudict.dict()
 
@@ -55,7 +56,7 @@ class GPSR:
         self.rooms = ["children's library","living room","kitchen and dining room","hallway","exit", "operator"]
         self.nav_state = "waiting"
         self.ques_state = "waiting"
-
+        self.search_state = "waiting"
         #search: find, look_for
         #move: go, move, guide, navigate, drive
         #language: introduce, answer, ask, tell, say
@@ -242,6 +243,18 @@ class GPSR:
     def questionReset(self):
         self.ques_state = "waiting"
 
+    def search(self):
+        com = String()
+        com.data = "find"
+        search_pub.publish(com)
+        self.search_state = "running"
+
+    def searchResult(self, msg):
+        self.search_state = msg.data
+
+    def searchReset(self):
+        self.search_state = "waiting"
+
     def estimateWord(self, target_dict,target_list, target_word, threshold=0.0):
         if target_word in target_dict:
             f_pro_dict = []
@@ -333,16 +346,15 @@ class GPSR:
 
                 elif self.command_order[i] == "leave":
                     speak("I am leaving.")
-                    msg = String()
-                    msg.data = "leave"
-                    navigation_pub.publish(msg)
+                    self.navigation("exit")
                     i += 1
 
                 elif self.command_order[i] == "follow":
                     speak("I am following.")
-                    msg = String()
-                    msg.data = "follow"
-                    navigation_pub.publish(msg)
+                    #msg = String()
+                    #msg.data = "follow"
+                    #navigation_pub.publish(msg)
+                    speak("Skipping to next command.")
                     i += 1
 
                 elif self.command_order[i] == "answer":
@@ -397,9 +409,17 @@ class GPSR:
 
                     elif self.nav_state is not "running":
                         speak("Arrived at destination.")
-                        speak("Moving to next command.")
-                        self.navigationReset()
-                        i += 1
+                        if self.search_state is "waiting":
+                            speak("Searching person.")
+                            self.search()
+                        elif self.search_state is "running":
+                            speak("Finding person.")
+                        else:
+                            speak("Found person.")
+                            speak("Moving to next command.")
+                            self.searchReset()
+                            self.navigationReset()
+                            i += 1
 
                 elif self.command_order[i] in self.deliver_categories:
                     if self.nav_state is "waiting":
