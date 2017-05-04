@@ -50,6 +50,8 @@ class GPSR:
         self.deliver_categories = ["deliver", "hand", "place", "give", "bring"]
         self.furnitures = {"bookshelf":"children's library","sofa":"living room","tv":"living room","table":"living room","bar table":"kitchen and dining room","table set one":"kitchen and dining room","table set two":"kichen and dining room", "bar_table" : "kitchen and dining room", "table_set_one":"kitchen and dining room", "table_set_two" : "kitchen and dining room", "operator": "operator"}
         self.furnitures_list = ["bookshelf", "sofa", "tv", "table", "bar table", "table set one", "table set two", "children library", "living room", "kitchen and dining room", "hallway", "operator"]
+        self.object_list = ["green tea", "cafe au lait", "iced tea", "grape fruit juice", "strawberry juice", "potato chips", "cookie", "potato stick", "potage soup", "egg soup", "orange", "apple", "plate", "tray", "cup"]
+
         self.rooms = ["children's library","living room","kitchen and dining room","hallway","exit", "operator"]
         self.nav_state = "waiting"
         self.ques_state = "waiting"
@@ -120,7 +122,12 @@ class GPSR:
                 if not token_tag_new[i][0] in self.furnitures_list:
                     if i is 0:
                         word_estimate = self.estimateWord(self.pro_dict, self.command_table, token_tag_new[i][0], threshold=0.1)
-                        print token_tag_new[i][0], word_estimate
+                        if word_estimate is not None:
+                            print token_tag_new[i][0], word_estimate
+                            token_tag_new[i][0] = word_estimate
+                            token_tag_new[i][1] = "VB"
+                            self.objective_order.append(token_tag_new[i][0])
+                                    
                     else:
                         if len(token_tag_new[i][0]) >= 5:
                             if token_tag_new[i][1] is "VB":
@@ -128,8 +135,30 @@ class GPSR:
                                 print token_tag_new[0:i]
                                 score = reduce(add, detect_table)
                                 if score == 0:
+                                    word_estimate = self.estimateWord(self.pro_dict, self.furnitures_list, token_tag_new[i][0], threshold=0.1)
+                                    if word_estimate is not None:
+                                        print token_tag_new[i], word_estimate
+                                        token_tag_new[i][0] = word_estimate
+                                        token_tag_new[i][1] = "NN"
+                                        self.objective_order.append(token_tag_new[i][0])
+                                else:
                                     word_estimate = self.estimateWord(self.pro_dict, self.command_table, token_tag_new[i][0], threshold=0.1)
-                                    print token_tag_new[i][0], word_estimate
+                                    if word_estimate is not None:
+                                        print token_tag_new[i][0], word_estimate
+                                        token_tag_new[i][0] = word_estimate
+                                        self.command_order.append(token_tag_new[i][0])
+                            else:
+                                detect_table = [int(token_tag_new[j][1] is not "NNP") or int(token_tag_new[j][1] is not "NN") or int(token_tag_new[j][1] is not "VB") for j in range(i - 1)]
+                                score = reduce(add, detect_table)
+                                if score > 2:
+                                    word_estimate = self.estimateWord(self.pro_dict, self.command_table + self.furnitures_list + self.object_list, token_tag_new[i][0])
+                                    if word_estimate is not None:
+                                        print token_tag_new[i][0], word_estimate
+                                        token_tag_new[i][0] = word_estimate
+                                        if word_estimate in self.furnitures_list or word_estimate in self.object_list:
+                                            token_tag_new[i][1] = "NN"
+                                        else:
+                                            token_tag_new[i][1] = "VB"
 
 
         self.token_tag = [tuple(token_tag_new[i]) for i in range(len(self.token_tag))]
