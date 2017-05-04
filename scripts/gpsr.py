@@ -48,9 +48,9 @@ class GPSR:
         self.manip_categories = ["grasp", "pick_up", "get", "take"]
         self.speak_categories = ["tell", "say"]
         self.deliver_categories = ["deliver", "hand", "place", "give", "bring"]
-        self.furnitures = {"bookshelf":"children's library","sofa":"living room","tv":"living room","table":"living room","bar table":"kitchen and dining room","table set one":"kitchen and dining room","table set two":"kichen and dining room", "bar_table" : "kitchen and dining room", "table_set_one":"kitchen and dining room", "table_set_two" : "kitchen and dining room"}
-        self.furnitures_list = ["bookshelf", "sofa", "tv", "table", "bar table", "table set one", "table set two", "children library", "living room", "kitchen and dining room", "hallway"]
-        self.rooms = ["children's library","living room","kitchen and dining room","hallway","exit"]
+        self.furnitures = {"bookshelf":"children's library","sofa":"living room","tv":"living room","table":"living room","bar table":"kitchen and dining room","table set one":"kitchen and dining room","table set two":"kichen and dining room", "bar_table" : "kitchen and dining room", "table_set_one":"kitchen and dining room", "table_set_two" : "kitchen and dining room", "operator": "operator"}
+        self.furnitures_list = ["bookshelf", "sofa", "tv", "table", "bar table", "table set one", "table set two", "children library", "living room", "kitchen and dining room", "hallway", "operator"]
+        self.rooms = ["children's library","living room","kitchen and dining room","hallway","exit", "operator"]
         self.nav_state = "waiting"
         self.ques_state = "waiting"
 
@@ -304,7 +304,8 @@ class GPSR:
 
                     else:
                         self.stopVoiceRecog()
-                        speak("answered question")
+                        speak(sef.ques_state)
+                        speak("Answered question.")
                         speak("Moving to next command.")
                         i += 1
 
@@ -350,9 +351,18 @@ class GPSR:
                         i += 1
 
                 elif self.command_order[i] in self.deliver_categories:
-                    speak("I am going to deliver.")
-                    speak("Skipping command.")
-                    i += 1
+                    if self.nav_state is "waiting":
+                        place = self.furnitures["operator"]
+                        speak("I am going to deliver.")
+                        self.navigation(place)
+                    elif self.nav_state is "running":
+                        rospy.loginfo("returning back to operator.")
+
+                    else:
+                        speak("Returned back to operator.")
+                        speak("Moving to next command.")
+                        self.navigationReset()
+                        i += 1
 
             self.startVoiceRecog()
 
