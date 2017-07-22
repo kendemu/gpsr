@@ -41,6 +41,35 @@ class CommandAnalyzer:
         G = ngram.NGram(input_list)
         return G.search(input_string, threshold)
 
+
+    def estimateWord(self, target_dict,target_list, target_word, threshold=0.0):
+        if target_word in target_dict:
+            f_pro_dict = []
+            for j in range(len(target_list)):
+                if target_list[j].find(" ") != -1:
+                    f_multi = target_list[j].split()
+                    f = []
+                    for k in range(len(f_multi)):
+                        f = f + ['_'] + target_dict[f_multi[k]][0]
+                    f_pro_dict.append("".join(f))
+                elif target_list[j].find("_") != -1:
+                    f_multi = target_list[j].split("_")
+                    f = []
+                    for k in range(len(f_multi)):
+                        f = f + ['_'] + target_dict[f_multi[k]][0]
+                    f_pro_dict.append("".join(f))
+
+                else:
+                    f_pro_dict.append("".join(target_dict[target_list[j]][0]))
+                    
+            f_dict = dict([(f_pro_dict[j], target_list[j]) for j in range(len(target_list))])
+            return f_dict[self.NGramSimilarity(f_pro_dict, "".join(target_dict[target_word][0]), threshold)]
+
+
+        else:
+            return self.NGramSimilarity(target_list, target_word, threshold)
+                                                        
+    
     def refSolver(self, grammer):
         pos = [gram[1] for gram in grammer]
         for i in range(len(grammer)):
