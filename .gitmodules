@@ -1,6 +1,6 @@
-[submodule "gpsr_command_generator"]
-	path = gpsr_command_generator
-	url = https://github.com/RoboCupAtHome/gpsr_command_generator
 [submodule "eegpsr"]
 	path = eegpsr
 	url = https://github.com/RoboCupAtHome/reo2016
+[submodule "GPSRCmdGen"]
+	path = GPSRCmdGen
+	url = https://github.com/kyordhel/GPSRCmdGen
