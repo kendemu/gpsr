@@ -15,13 +15,8 @@ import time
 import os
 import ngram
 
-path = "/home/kazuki/catkin_ws/src/mini-voice-client"
 navigation_pub = rospy.Publisher("/gpsr/navigation/input", String)
 search_pub = rospy.Publisher("/gpsr/search/input", String)
-
-def speak(text):
-    rospy.loginfo(text)
-    call(["./speak.sh", text, path])
 
 
 class GPSR:
@@ -171,10 +166,10 @@ class GPSR:
         vocab = list(set(lemmas))
         return vocab
 
-    def mostSimilar(self, input_list, input_data, threshold):
+    def NGramSimilarity(self, input_list, input_data, threshold):
         G = ngram.NGram(input_list)
-        print G.search(input_data, threshold)
-        return G.find(input_data, threshold)
+        return G.search(input_data, threshold)
+        #return G.find(input_data, threshold)
 
     def PRPProcessor(self):
         predict = []
@@ -277,10 +272,10 @@ class GPSR:
                     f_pro_dict.append("".join(target_dict[target_list[j]][0]))
 
             f_dict = dict([(f_pro_dict[j], target_list[j]) for j in range(len(target_list))])
-            return f_dict[self.mostSimilar(f_pro_dict, "".join(target_dict[target_word][0]), threshold)]
+            return f_dict[self.NGramSimilarity(f_pro_dict, "".join(target_dict[target_word][0]), threshold)]
 
         else:
-            return self.mostSimilar(target_list, target_word, threshold)
+            return self.NGramSimilarity(target_list, target_word, threshold)
 
     def speechcallback(self,data):
         print data

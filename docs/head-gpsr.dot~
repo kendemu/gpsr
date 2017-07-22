@@ -1,0 +1,8 @@
+digraph G{
+	"Look" -> "for"
+	"candies" -> "the1"
+	"for" -> "candies"
+	"candies" -> "in"
+	"bedroom" -> "the2"
+	"in" -> "bedroom"
+}

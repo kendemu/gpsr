@@ -1,0 +1,101 @@
+digraph G{
+	label="GPSRのユースケース図"
+	rankdir="LR"
+
+	subgraph cluster_gpsr{
+		label="GPSRパッケージ"
+		"入場"
+		"タスクの実行"
+		"オペレータへの帰還"
+		"退場"
+		subgraph cluster_nyujou{
+		rankdir="RL"
+
+		label="入場のパッケージ"
+		"アリーナに入る" -> "入場"[label="<<include>>", style="dashed"];
+		"初期位置に移動する" -> "入場"[label="<<include>>", style="dashed"];
+		"コマンドを待ち受ける" -> "入場"[label="<<include>>", style="dashed"];
+	}
+	
+	subgraph cluster_task{
+		rankdir="RL"
+		label="タスク実行パッケージ";
+		"質問に答える" -> "タスクの実行"[label="<<include>>", style="dashed"];
+		"人を探す" -> "タスクの実行"[label="<<include>>", style="dashed"];
+		"指定された部屋に移動する" -> "タスクの実行"[label="<<include>>", style="dashed"];
+		"人を認識する" -> "タスクの実行"[label="<<include>>", style="dashed"];
+		"ものを配達する" -> "タスクの実行"[label="<<include>>", style="dashed"];
+		"ものをしまう" -> "タスクの実行"[label="<<include>>", style="dashed"];
+	}
+
+	subgraph cluster_return{
+		rankdir="RL"
+		label="帰還パッケージ"		
+		"オペレータの位置に移動する" -> "オペレータへの帰還"[label="<<include>>", style="dashed"];
+		"オペレータの位置を記憶する" -> "オペレータの位置に移動する"[label="<<include>>", style="dashed"];
+		
+		
+	}
+
+	}
+
+	"オペレータ"[image="actor.png", shape="none"]
+
+	"オペレータ" -> "タスクの実行"[label="コマンド生成", arrowhead="none", arrowtail="none"]
+	"オペレータへの帰還" -> "オペレータ"[label="コマンドの完了", arrowhead="none", arrowtail="none"]
+
+	subgraph cluster_navigation{
+		rankdir="RL"
+		label="ナビゲーションパッケージ"
+		"部屋の位置を割り出す"
+		"指定された位置に移動する"
+		"現在位置を記憶する"
+	}	
+
+	subgraph cluster_imagerecog{
+		rankdir="RL"
+		label="画像認識パッケージ"
+		"物体を認識する"
+		"人の数を割り出す"
+		"人の性別を割り出す"
+		"特定の人を見分ける"
+		"人の姿勢を割り出す"
+	}
+
+	subgraph cluster_language{
+		rankdir="RL"
+		label="自然言語パッケージ"
+		"命令を解析する"
+	}
+
+	subgraph cluster_voicerecog{
+		rankdir="RL"
+		label="音声認識パッケージ"
+		"声を認識する"
+	}
+
+	subgraph cluster_manipulation{
+		rankdir="RL"
+		label="マニピュレーションパッケージ"
+		"指定位置のものをつかむ"
+		"指定位置にものを配置する"
+	}
+	
+	"指定された位置に移動する" -> "オペレータの位置に移動する"[arrowhead="onormal"]
+	"指定された位置に移動する" -> "初期位置に移動する"[arrowhead="onormal"]
+	"指定された位置に移動する" -> "指定された部屋に移動する"[arrowhead="onormal"]
+	"現在位置を記憶する" -> "オペレータの位置を記憶する"[arrowhead="onormal"]
+	"部屋の位置を割り出す" -> "指定された部屋に移動する"[label="<<include>>", style="dashed"]
+	"部屋の位置を割り出す" -> "初期位置に移動する"[label="<<include>>", style="dashed"]
+	"人の数を割り出す" -> "人を認識する"[label="<<include>>", style="dashed"]
+	"人の性別を割り出す" -> "人を認識する"[label="<<include>>", style="dashed"]
+	"特定の人を見分ける" -> "人を認識する"[label="<<include>>", style="dashed"]
+	"人の姿勢を割り出す" -> "人を認識する"[label="<<include>>", style="dashed"]
+	"物体を認識する" -> "ものを配達する"[label="<<include>>", style="dashed"]
+	"物体を認識する" -> "ものをしまう"[label="<<include>>", style="dashed"]
+	"指定位置のものをつかむ" -> "ものを配達する"[label="<<include>>", style="dashed"]
+	"指定位置のものをつかむ" -> "ものをしまう"[label="<<include>>", style="dashed"]
+	"指定位置にものを配置する" -> "ものをしまう"[label="<<include>>", style="dashed"]
+	"命令を解析する" -> "コマンドを待ち受ける"[label="<<include>>", style="dashed"]
+	
+}

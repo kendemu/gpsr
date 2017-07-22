@@ -1,0 +1,8 @@
+digraph G{
+	"Look" -> "for"[label="ADV"]
+	"candies" -> "the1"[label="NMOD"]
+	"for" -> "candies"[label="PMOD"]
+	"candies" -> "in"[label="LOC"]
+	"bedroom" -> "the2"[label="NMOD"]
+	"in" -> "bedroom"[label="PMOD"]
+}

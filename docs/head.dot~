@@ -1,0 +1,18 @@
+digraph G{
+	rankdir="LL"
+	label="Two of them were being run by 2 officials of the Ministry of the Interior!の依存文法構文解析"
+	"run" -> "Two"
+	"them" -> "of1"
+	"Two" -> "them"
+	"run" -> "were"
+	"run" -> "being"
+	"officials" -> "by"
+	"officials" -> "2"
+	"run" -> "officials"
+	"Ministry" -> "of"
+	"officials" -> "the"
+	"officials" -> "Ministry"
+	"Interior" -> "of3"
+	"Interior" -> "the"
+	"Ministry" -> "Interior"
+}
